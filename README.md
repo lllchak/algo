@@ -1,0 +1,2 @@
+# algo
+Simple AutoML library
