@@ -3,6 +3,7 @@ Classification task model
 """
 
 from typing import (
+    List,
     Dict,
     Any,
     Callable
