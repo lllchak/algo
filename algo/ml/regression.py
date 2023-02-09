@@ -18,18 +18,20 @@ class RegressionAlgo(BaseAlgo):
 
     def __repr__(self) -> str:
         return (
-            f"RegressionAlgo(\n\ttrain={self._train.shape},\n\tvalid={self._valid.shape},\n\tmodel_params={self._model_params}\n)"
+            f"""RegressionAlgo(
+    model_params=({self._model_params})
+)"""
         )
 
     def __init__(
         self,
-        train: pd.DataFrame,
-        test: pd.DataFrame,
-        roles: Dict[str, Any] = None,
+        column_roles: Dict[str, Any] = None,
         model_params: Dict[str, Any] = None,
         model: Callable = LinearRegression
     ) -> None:
-        super(RegressionAlgo, self).__init__(train=train, test=test, roles=roles)
+        super(RegressionAlgo, self).__init__(
+            column_roles=column_roles
+        )
 
         self.__is_fitted: bool = False
 
@@ -37,32 +39,42 @@ class RegressionAlgo(BaseAlgo):
             self.__model = model(model_params)
             self._model_params = model_params
         except:
-            logging.warning(f"{model_params} are invalid, using default")
+            logging.warning(f" Model params are not provided, using default")
             self.__model = model()
+            self._model_params = None
 
-    def fit(self) -> None:
+    def fit(self, train_data: pd.DataFrame) -> None:
+        self._features, self._target = (
+            self._split_data(train_data)
+        )
+
         # self-check
-        if not self._features or not self._target:
+        if not len(self._features) or not len(self._target):
             raise AttributeError("Input data not splitted")
 
         # controversial processing, in theory sklearn will throw 
         # it himself if something goes wrong        
         try:
+            # TODO: check target dimensions (dould be 2d)
             self.__model.fit(self._features, self._target)
             self.__is_fitted = True
         except:
             raise RuntimeError("Fitting suddenly crashed")
 
-    def predict(self) -> np.array:
+    def predict(self, test_data) -> np.array:
         if self.__is_fitted:
             # same thing as in fit method 
             try:
-                return self.__model.predict(self._test)
+                return self.__model.predict(test_data)
             except:
                 raise AttributeError("Invalid data format provided")
         else:
             raise RuntimeError("Can't predict with unfitted model")
 
-    def fit_predict(self) -> np.array:
-        self.fit()
-        return self.predict(self._test)
+    def fit_predict(
+        self,
+        train_data: pd.DataFrame, 
+        test_data: pd.DataFrame,
+    ) -> np.array:
+        self.fit(train_data=train_data)
+        return self.predict(test_data=test_data)

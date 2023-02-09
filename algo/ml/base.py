@@ -9,6 +9,7 @@ from abc import (
 
 from typing import (
     Any,
+    Tuple,
     Dict
 )
 
@@ -20,25 +21,22 @@ class BaseAlgo(ABC):
 
     def __repr__(self) -> str:
         return (
-            f"BaseAlgo(\n\ttrain={self._train.shape},\n\tvalid={self._valid.shape},\n\tmodel_params=()\n)"
+            f"""BaseAlgo(
+    model_params=()
+)"""
         )
 
     def __init__(
         self,
-        train: pd.DataFrame,
-        test: pd.DataFrame,
-        roles: Dict[str, Any] = None
+        column_roles: Dict[str, Any] = None
     ) -> None:
 
-        if not roles: raise AttributeError("Provide model with data roles (Eg. set target variable)")
-        if not roles["target"]: raise AttributeError("Provide target variable for training")
+        if not column_roles: raise AttributeError("Provide model with data roles (Eg. set target variable)")
+        if not column_roles["target"]: raise AttributeError("Provide target variable for training")
 
-        self._roles: Dict[str, Any] = roles
-        self._train: pd.DataFrame = train
-        self._test: pd.DataFrame = test
-        self._features: pd.DataFrame = None
-        self._target: pd.Series = None
-        self.__split_data()
+        self._roles: Dict[str, Any] = column_roles
+        self._features = None
+        self._target = None
 
     @abstractmethod
     def fit(self) -> None:
@@ -52,7 +50,9 @@ class BaseAlgo(ABC):
     def fit_predict(self) -> pd.DataFrame:
         raise NotImplementedError
 
-    def __split_data(self) -> None:
-        self._features = self._train.drop(columns=self._roles["target"])
-        self._target = self._train[self._roles["target"]]
+    def _split_data(self, data: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
+        return (
+            data.drop(columns=[self._roles["target"]]),
+            data[self._roles["target"]]
+        )
         
