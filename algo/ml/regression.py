@@ -1,3 +1,7 @@
+"""
+Regression task model
+"""
+
 from typing import (
     Dict,
     Any,

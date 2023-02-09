@@ -99,8 +99,7 @@ class BaseAlgo(ABC):
             # TODO: check target dimensions (dould be 2d)
             self.__model.fit(self._features, self._target)
             self.__is_fitted = True
-        except:
-            raise RuntimeError("Fitting suddenly crashed")
+        except: raise RuntimeError("Fitting suddenly crashed")
 
     def predict(self, test_data: pd.DataFrame) -> np.array:
         """
@@ -119,12 +118,9 @@ class BaseAlgo(ABC):
             # controversial processing, in theory sklearn 
             # (or lightgbm, xgboost) will throw 
             # it himself if something goes wrong 
-            try:
-                return self.__model.predict(test_data)
-            except:
-                raise AttributeError("Invalid data format provided")
-        else:
-            raise RuntimeError("Can't predict with unfitted model")
+            try: return self.__model.predict(test_data)
+            except: raise AttributeError("Invalid data format provided")
+        else: raise RuntimeError("Can't predict with unfitted model")
 
     def fit_predict(
         self,
