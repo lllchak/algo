@@ -15,6 +15,7 @@ if __name__ == "__main__":
     data = pd.read_csv("test.csv")
 
     algo = RegressionAlgo(column_roles={"target": "target"})
-    algo.fit_predict(data, data[["row1", "row2"]])
+    pred = algo.fit_predict(data)
 
     print(algo)
+    print(pred)
