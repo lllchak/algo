@@ -24,12 +24,10 @@ class Preprocessor:
         self.cat_cols = cat_cols
 
     def fit(self, data: pd.DataFrame) -> None:
-        is_cat: bool = None
         try:
+            is_cat: bool = None
             for col in data.columns:
-                if not self.cat_cols:
-                    is_cat = self._get_col_type(data[col])
-                else: is_cat = col in self.cat_cols or self._get_col_type(data[col])
+                is_cat = self._is_cat(data, col)
 
                 transformer = LabelEncoder() \
                     if is_cat \
@@ -45,17 +43,34 @@ class Preprocessor:
         tmp: pd.DataFrame = copy(data)
 
         try:
-            transformed_dict: Dict[str, List[Any]] = {
-                self._col_to_tranformer[col] for col in tmp.columns
-            }
+            transformed_dict: Dict[str, List[Any]] = {col: None for col in tmp.columns}
+
+            is_cat: bool = None
+            for col in tmp.columns:
+                is_cat = self._is_cat(data, col)
+
+                if is_cat: transformed_dict[col] = (
+                    self._col_to_tranformer[col].transform(data[col])
+                )
+                else: transformed_dict[col] = (
+                    self._col_to_tranformer[col].transform(np.array(data[col]).reshape(-1, 1)).ravel()
+                )
+
+            return pd.DataFrame(transformed_dict)
+
         except: raise ValueError("Dataset should be in pandas format")
 
-
-        return pd.DataFrame(
-            {
-                self._col_to_tranformer[col] for col in tmp.columns
-            }
-        )
+    def fit_transform(self, data: pd.DataFrame) -> pd.DataFrame:
+        self.fit(data)
+        return self.transform(data)
 
     def _get_col_type(self, data: pd.Series) -> List[str]:
         return data.dtype.name in ["category", "object"]
+
+    def _is_cat(self, data: pd.DataFrame, col: str) -> bool:
+        is_cat: bool = None
+        if not self.cat_cols:
+            is_cat = self._get_col_type(data[col])
+        else: is_cat = col in self.cat_cols or self._get_col_type(data[col])
+
+        return is_cat
