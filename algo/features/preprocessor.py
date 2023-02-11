@@ -33,8 +33,12 @@ class Preprocessor:
                     if is_cat \
                     else StandardScaler()
                 
-                if is_cat: transformer.fit(data[col])
-                else: transformer.fit(np.array(data[col]).reshape(-1, 1))
+                if is_cat:
+                    data[col].fillna("NULL")
+                    transformer.fit(data[col])
+                else: 
+                    data[col].fillna(data[col].median())
+                    transformer.fit(np.array(data[col]).reshape(-1, 1))
                 self._col_to_tranformer[col] = transformer
 
         except: raise ValueError("Dataset should in pandas format")
@@ -49,12 +53,16 @@ class Preprocessor:
             for col in tmp.columns:
                 is_cat = self._is_cat(data, col)
 
-                if is_cat: transformed_dict[col] = (
-                    self._col_to_tranformer[col].transform(data[col])
-                )
-                else: transformed_dict[col] = (
-                    self._col_to_tranformer[col].transform(np.array(data[col]).reshape(-1, 1)).ravel()
-                )
+                if is_cat:
+                    data[col].fillna("NULL")
+                    transformed_dict[col] = (
+                        self._col_to_tranformer[col].transform(data[col])
+                    )
+                else: 
+                    data[col].fillna(data[col].median())
+                    transformed_dict[col] = (
+                        self._col_to_tranformer[col].transform(np.array(data[col]).reshape(-1, 1)).ravel()
+                    )
 
             return pd.DataFrame(transformed_dict)
 

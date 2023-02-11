@@ -28,4 +28,5 @@ if __name__ == "__main__":
     # print(processor.fit_transform(data))
 
     automl = AlgoAutoML(Task(name="binary"))
+    automl.fit(data, column_roles={"target": "Survived", "drop": "Name"})
 

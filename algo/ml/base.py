@@ -71,6 +71,9 @@ class BaseAlgo(ABC):
             self.__model = model()
             self._model_params = None
 
+    @property
+    def estimator(self) -> Callable:
+        return self.__model
 
     def fit(self, train_data: pd.DataFrame) -> None:
         """
@@ -83,6 +86,8 @@ class BaseAlgo(ABC):
         Returns:
             None (fits ml model)
         """
+
+        train_data: pd.DataFrame = train_data.drop(columns=self._roles["drop"])
 
         self._features, self._target = (
             self._split_data(train_data)
@@ -113,6 +118,8 @@ class BaseAlgo(ABC):
             Predicted values as numpy array
         """
 
+        test_data: pd.DataFrame = test_data.drop(columns=self._roles["drop"])
+
         if self.__is_fitted:
             # as in fit method,
             # controversial processing, in theory sklearn 
@@ -124,7 +131,7 @@ class BaseAlgo(ABC):
 
     def fit_predict(
         self,
-        train_data: pd.DataFrame
+        train_data: pd.DataFrame,
     ) -> np.array:
         """
         Description:
