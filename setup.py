@@ -1,14 +1,20 @@
 from setuptools import setup
 
 setup(
-    name="algo",
-    version="0.1.0",
+    name="algo-auto-ml",
+    version="0.1.7",
     description="AutoML library for binary classification and regression tasks",
     url="https://github.com/lllchak/algo",
     author="Pavel Lyulchak",
     author_email="mediumchak@yandex.ru",
     license="MIT",
-    packages=["algo"],
+    packages=[
+        "algo",
+        "algo/automl",
+        "algo/ml",
+        "algo/task",
+        "algo/features"
+    ],
     install_requires=[
         "numpy",
         "pandas",
