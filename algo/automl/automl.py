@@ -102,6 +102,9 @@ class AlgoAutoML:
 
         _tmp = copy(data)
 
+        if "drop" not in column_roles:
+            column_roles["drop"] = []
+
         self._column_roles = column_roles
 
         self.__validate_train_input(
@@ -109,7 +112,7 @@ class AlgoAutoML:
             column_roles=self._column_roles
         )
 
-        _tmp = _tmp.drop(columns=column_roles["drop"])
+        _tmp = _tmp.drop(columns=self._column_roles["drop"])
         prep: Preprocessor = Preprocessor(
             column_roles=self._column_roles,
             task=self.task
@@ -123,8 +126,25 @@ class AlgoAutoML:
         self,
         data: pd.DataFrame
     ) -> np.array:
+        """
+        Description:
+            Predicting using fitted estimator function. Runs inference on input data
+            using previously trained model
+
+        Args:
+            data (pd.DataFrame) : Input data in pandas DataFrame format
+
+        Returns:
+            Predicted data in numpy array format
+        """
+
         _tmp = copy(data)
 
+        self.__validate_test_input(
+            data=_tmp,
+            column_roles=self._column_roles
+        )
+            
         _tmp = _tmp.drop(columns=self._column_roles["drop"])
         prep: Preprocessor = Preprocessor(
             column_roles=self._column_roles,
@@ -218,7 +238,7 @@ class AlgoAutoML:
         column_roles: Dict[str, Any]
     ) -> None:
         """
-        Funtion to validate input data and its column roles. Check if user provided with
+        Funtion to validate train input data and its column roles. Check if user provided with
         target variable, if drop columns are in data
 
         Args:
@@ -235,7 +255,35 @@ class AlgoAutoML:
             raise AttributeError("Provide model with data roles (Eg. set target variable)")
         if "target" not in list(column_roles.keys()): 
             raise AttributeError("Provide target variable name from your data")
-        if column_roles["drop"]:
+        if "drop" in list(column_roles.keys()) and column_roles["drop"]:
+            columns: List[str]
+            if isinstance(column_roles["drop"], str): columns = [column_roles["drop"]]
+            else: columns = column_roles["drop"]
+
+            for col in columns:
+                if col not in data.columns:
+                    raise KeyError(f'Column "{col}" not found in given data')
+
+    def __validate_test_input(
+        self,
+        data: pd.DataFrame,
+        column_roles: Dict[str, Any]
+    ) -> None:
+        """
+        Funtion to validate test input data and its column roles. Check if user provided 
+        drop columns
+
+        Args:
+            data (pd.DataFrame) : Input data in pandas DataFrame format
+            column_roles (dict) : Instructions on how to process data 
+                                  (what is the target value or which to drop)
+
+        Returns:
+            Throws exception if one of the input values do not match the solving task, 
+            otherwise returns nothing
+        """
+
+        if "drop" in list(column_roles.keys()) and column_roles["drop"]:
             columns: List[str]
             if isinstance(column_roles["drop"], str): columns = [column_roles["drop"]]
             else: columns = column_roles["drop"]
