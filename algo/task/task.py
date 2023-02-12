@@ -15,9 +15,9 @@ from sklearn.metrics import (
     mean_absolute_percentage_error,
     mean_squared_log_error,
     log_loss,
-    auc,
-
+    auc
 )
+
 
 """
 Valid task name
@@ -107,7 +107,7 @@ class Task:
         Returns:
             Default loss for solving task
         """
-        
+
         assert self.name, "Provide task name"
 
         return Metrics.DEFAULT_LOSS_BINARY \
