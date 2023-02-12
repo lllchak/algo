@@ -8,7 +8,9 @@ from typing import (
     Callable,
     Any
 )
+from copy import copy
 
+import numpy as np
 import pandas as pd
 from sklearn.model_selection import (
     GridSearchCV,
@@ -52,8 +54,7 @@ class AlgoAutoML:
     def __init__(
         self,
         task: Task = None,
-        custom_models: List[Union[RegressionAlgo, ClassificationAlgo]] = [],
-        only_custom: bool = False
+        custom_models: List[Union[RegressionAlgo, ClassificationAlgo]] = []
     ) -> None:
         """
         Description:
@@ -74,19 +75,10 @@ class AlgoAutoML:
 
         if not task: raise AttributeError("Provide solving task [binary, reg]")
         self.task: Task = task
-        self._models: List[Callable] = None
+        self._custom_models = custom_models
+        self._column_roles = None
         self.best_estimator_: Callable = None
         self.params_: Dict[str, Any] = None
-
-        if task.name == "binary":
-            if not only_custom:
-                self._models = Models.BINARY.value + custom_models
-            else: self._models = custom_models
-
-        else:
-            if not only_custom:
-                self._models = Models.REG.value + custom_models
-            else: self._models = custom_models
 
     def fit(
         self,
@@ -108,20 +100,39 @@ class AlgoAutoML:
             None (saves best model state after running full auto ML pipeline)
         """
 
-        self.__validate_input(
-            data=data, 
-            column_roles=column_roles
+        _tmp = copy(data)
+
+        self._column_roles = column_roles
+
+        self.__validate_train_input(
+            data=_tmp, 
+            column_roles=self._column_roles
         )
 
+        _tmp = _tmp.drop(columns=column_roles["drop"])
         prep: Preprocessor = Preprocessor(
-            column_roles=column_roles,
+            column_roles=self._column_roles,
             task=self.task
         )
+        _tmp = prep.fit_transform(_tmp)
 
-        data = data.drop(columns=column_roles["drop"])
-        data = prep.fit_transform(data)
+        self.best_estimator_ = self.__search_best_model(data=_tmp, column_roles=column_roles)
+        self.best_estimator_.fit(train_data=_tmp)
 
-        self.best_estimator_ = self.__search_best_model(data=data, column_roles=column_roles)
+    def predict(
+        self,
+        data: pd.DataFrame
+    ) -> np.array:
+        _tmp = copy(data)
+
+        _tmp = _tmp.drop(columns=self._column_roles["drop"])
+        prep: Preprocessor = Preprocessor(
+            column_roles=self._column_roles,
+            task=self.task
+        )
+        _tmp = prep.fit_transform(_tmp)
+
+        return self.best_estimator_.predict(_tmp)
 
     def __search_best_model(
         self,
@@ -144,7 +155,7 @@ class AlgoAutoML:
         """
 
         task_params = self.__define_task_params()
-        candidates: List[Callable] = task_params[0]
+        candidates: List[Callable] = task_params[0] + self._custom_models
         param_grid: Dict[str, Any] = task_params[1]
         algo: Callable = task_params[2]
         best_score: float = 0
@@ -201,7 +212,7 @@ class AlgoAutoML:
                 "Can only solve two tasks [`binary` (binary classification), `reg` (regression)]"
             )
 
-    def __validate_input(
+    def __validate_train_input(
         self,
         data: pd.DataFrame,
         column_roles: Dict[str, Any]
