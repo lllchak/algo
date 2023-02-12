@@ -35,8 +35,7 @@ class BaseAlgo(ABC):
 
     def __init__(
         self,
-        column_roles: Dict[str, Any] = None,
-        model_params: Dict[str, Any] = None,
+        column_roles: Dict[str, Any] = None,       
         model: Callable = None
     ) -> None:
         """
@@ -61,19 +60,12 @@ class BaseAlgo(ABC):
         self._features = None
         self._target = None
 
+        self._model: Callable = model
         self.__is_fitted: bool = False
-
-        try:
-            self.__model = model(model_params)
-            self._model_params = model_params
-        except:
-            logging.warning(f" Model params are not provided, using default")
-            self.__model = model()
-            self._model_params = None
 
     @property
     def estimator(self) -> Callable:
-        return self.__model
+        return self._model
 
     def fit(self, train_data: pd.DataFrame) -> None:
         """
@@ -101,10 +93,9 @@ class BaseAlgo(ABC):
         # (or lightgbm, xgboost) will throw 
         # it himself if something goes wrong        
         try:
-            # TODO: check target dimensions (dould be 2d)
-            self.__model.fit(self._features, self._target)
+            self._model.fit(self._features, self._target)
             self.__is_fitted = True
-        except: raise RuntimeError("Fitting suddenly crashed")
+        except: raise RuntimeError("Fitting suddenly crashed. Crash reason described above")
 
     def predict(self, test_data: pd.DataFrame) -> np.array:
         """
@@ -125,7 +116,7 @@ class BaseAlgo(ABC):
             # controversial processing, in theory sklearn 
             # (or lightgbm, xgboost) will throw 
             # it himself if something goes wrong 
-            try: return self.__model.predict(test_data)
+            try: return self._model.predict(test_data)
             except: raise AttributeError("Invalid data format provided")
         else: raise RuntimeError("Can't predict with unfitted model")
 
