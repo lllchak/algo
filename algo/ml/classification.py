@@ -2,6 +2,7 @@
 Classification task model
 """
 
+import logging
 from typing import (
     List,
     Dict,
@@ -26,9 +27,13 @@ class ClassificationAlgo(BaseAlgo):
 
     def __init__(
         self,
+        model: Callable,
         column_roles: Dict[str, Any] = None,
-        model: Callable = LogisticRegression()
     ) -> None:
+        if not model: 
+            logging.warning(f" Best model not found, using default ({LogisticRegression})")
+            model = LogisticRegression()
+
         super(ClassificationAlgo, self).__init__(
             column_roles=column_roles,
             model=model

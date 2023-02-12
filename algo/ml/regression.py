@@ -2,6 +2,7 @@
 Regression task model
 """
 
+import logging
 from typing import (
     Dict,
     Any,
@@ -28,6 +29,10 @@ class RegressionAlgo(BaseAlgo):
         column_roles: Dict[str, Any] = None,
         model: Callable = LinearRegression()
     ) -> None:
+        if not model: 
+            logging.warning(f" Best model not found, using default ({LinearRegression})")
+            model = LinearRegression()
+
         super(RegressionAlgo, self).__init__(
             column_roles=column_roles,
             model=model
