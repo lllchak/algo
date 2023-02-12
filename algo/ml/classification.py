@@ -16,6 +16,14 @@ from sklearn.linear_model import LogisticRegression
 
 
 class ClassificationAlgo(BaseAlgo):
+    """
+    Classification task model wrapper class. Since have similar API for fit(),
+    predict() and fit_predict() methods with regression task model, full API 
+    is defined in BaseAlgo class [./base.py].
+    
+    Here simply inherits full BaseAlgo API. To see fit(), predict() and etc. definitions
+    and docs see ./base.py -> BaseAlgo class
+    """
 
     def __repr__(self) -> str:
         return (
