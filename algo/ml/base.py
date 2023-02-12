@@ -79,8 +79,6 @@ class BaseAlgo(ABC):
             None (fits ml model)
         """
 
-        train_data: pd.DataFrame = train_data.drop(columns=self._roles["drop"])
-
         self._features, self._target = (
             self._split_data(train_data)
         )
@@ -108,8 +106,6 @@ class BaseAlgo(ABC):
         Returns:
             Predicted values as numpy array
         """
-
-        test_data: pd.DataFrame = test_data.drop(columns=self._roles["drop"])
 
         if self.__is_fitted:
             # as in fit method,
