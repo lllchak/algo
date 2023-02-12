@@ -60,8 +60,8 @@ class Task:
     def __init__(
         self,
         name: str,
-        loss: Optional[str] = None,
-        metric: Optional[str] = None,
+        loss: Optional[Callable] = None,
+        metric: Optional[Callable] = None,
     ) -> None:
         """
         Description:
@@ -69,9 +69,9 @@ class Task:
             optimize
 
         Args:
-            name (str)   : Task name (`binary` - binary classification or `reg` - regression)
-            loss (str)   : Loss to optimize. Optional, if not provided, usning default
-            metric (str) : Metric to compute. Optional, if not provided, usning default
+            name (str)        : Task name (`binary` - binary classification or `reg` - regression)
+            loss (callable)   : Loss to optimize. Optional, if not provided, usning default
+            metric (callable) : Metric to compute. Optional, if not provided, usning default
 
         Returns:
             None (only initialize Task object)
