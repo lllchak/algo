@@ -160,7 +160,7 @@ class AlgoAutoML:
             searcher = GridSearchCV(
                 estimator,
                 param_grid=param_grid[model],
-                cv=cv,
+                cv=cv
             )
             searcher.fit(X_train, y_train)
             if searcher.best_score_ > best_score:
